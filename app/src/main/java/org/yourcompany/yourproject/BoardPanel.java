@@ -19,7 +19,6 @@ public class BoardPanel extends JPanel implements MouseListener {
     private Card selectedCard;
     private Pile selectedPile;
     private List<Card> selectedSequence;
-    //Guten tag du pisser
     
 
     public BoardPanel() {
@@ -60,7 +59,7 @@ public class BoardPanel extends JPanel implements MouseListener {
     }
     
     //Überprüft ob Ablagestappel voll sind um zu gewinnen
-    private boolean checkWinCondition() {
+    //private boolean checkWinCondition() {
     for (Pile foundation : foundations) {
         if (foundation.size() != 13) {
             return false;
