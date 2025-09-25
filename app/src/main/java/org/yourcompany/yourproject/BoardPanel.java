@@ -19,6 +19,8 @@ public class BoardPanel extends JPanel implements MouseListener {
     private Card selectedCard;
     private Pile selectedPile;
     private List<Card> selectedSequence;
+    //Guten tag du pisser
+    
 
     public BoardPanel() {
         initGame();
