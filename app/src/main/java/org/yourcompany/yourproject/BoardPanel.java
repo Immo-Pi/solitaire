@@ -19,6 +19,7 @@ public class BoardPanel extends JPanel implements MouseListener {
     private Card selectedCard;
     private Pile selectedPile;
     private List<Card> selectedSequence;
+    private int selectionDepth = 0; // neue variable für die Tiefe der Auswahl unten
 
     public BoardPanel() {
         initGame();
@@ -172,48 +173,70 @@ public class BoardPanel extends JPanel implements MouseListener {
     }
 
     @Override
-    public void mouseClicked(MouseEvent e) {
-        Pile clicked = findClickedPile(e.getPoint());
-        if (clicked == null) return;
+    public void mouseClicked(MouseEvent e){
+    Pile clicked = findClickedPile(e.getPoint());
+    if (clicked == null) return;
 
-        // Stock ziehen
-        if (clicked == stock) {
-            if (!stock.isEmpty()) {
-                waste.add(stock.draw());
-                repaint();
-            }
-            else if (!waste.isEmpty()) {
-                while (!waste.isEmpty()) {
+    // Stapel wird angeklickt
+    if (clicked == stock) {
+        if (!stock.isEmpty()) {
+            
+            waste.add(stock.draw());
+            repaint();
+        } else if (!waste.isEmpty()) {
+            
+            while (!waste.isEmpty()) {
                 stock.add(waste.draw());
-                }
-                stock.shuffle();
-                repaint();
             }
-            return;
-        }
-
-        // Erstes Klicken: Karte auswählen
-        if (selectedCard == null) {
-            if (clicked.isEmpty()) return;
-            selectedCard = clicked.top();
-            selectedPile = clicked;
-            repaint();
-        } else {
-            // Zweites Klicken: Verschieben versuchen
-            if (clicked.canAccept(selectedCard)) {
-                selectedPile.removeTop();
-                clicked.add(selectedCard);
-            }
-            selectedCard = null;
-            selectedPile = null;
+            stock.shuffle();
             repaint();
         }
-        
-        if (checkWinCondition()) {
-        JOptionPane.showMessageDialog(this, "Looser! ChatGPT hat gewonnen!");
-}
+        return;
     }
 
+    // Wenn noch keine Karte ausgewählt ist
+    if (selectedCard == null) {
+        if (clicked.isEmpty()) return;
+        // Wähle oberste Karte aus
+        selectedCard = clicked.top();
+        selectedPile = clicked;
+        selectionDepth = 0; // Starttiefe
+        repaint();
+    } else if (clicked == selectedPile) {
+        // Wiederholter Klick auf denselben Stapel ->  Karte drunter auswählen
+        selectionDepth++;
+        int index = selectedPile.size() - 1 - selectionDepth;
+        if (index >= 0) {
+            // Wähle Karte weiter unten im Stapel
+            selectedCard = selectedPile.get(index);
+            repaint();
+        } else {
+            // Wenn zu tief geklickt -> Wieder oben auf dem Stapel
+            selectedCard = null;
+            selectedPile = null;
+            selectionDepth = 0;
+            repaint();
+        }
+    } else {
+        // Zielstapel wurde angeklickt -> Versuche Karten zu verschieben
+        List<Card> sequence = selectedPile.getSequenceFrom(selectedCard);
+        if (clicked.canAccept(selectedCard)) {
+            // Karten werden vom alten Stapel entfernt und neuem hinzugefügt
+            selectedPile.removeSequenceFrom(selectedCard);
+            for (Card c : sequence) {
+                clicked.add(c);
+            }
+        }
+        // Auswahl zurücksetzen
+        selectedCard = null;
+        selectedPile = null;
+        selectionDepth = 0;
+        repaint();
+    }
+     if (checkWinCondition()) {
+        JOptionPane.showMessageDialog(this, "Looser! ChatGPT hat gewonnen!");
+     }
+    }
     // Unbenutzte Listener-Methoden
     public void mousePressed(MouseEvent e)  {}
     public void mouseReleased(MouseEvent e) {}
